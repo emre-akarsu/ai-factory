@@ -146,7 +146,7 @@ def start_run(tenant_id: uuid.UUID, user_id: str, employee_id: str, workflow: st
 def resume_run(tenant_id: uuid.UUID, run_id: uuid.UUID) -> Run:
     with tenant_session(tenant_id) as db:
         run = db.get(Run, run_id)
-        if run is None or run.status != "waiting_approval":
+        if run is None or run.status not in ("waiting_approval", "queued"):
             return run
         employee_id, workflow = run.employee_id, run.workflow
     graph = compile_workflow(employee_id, workflow, checkpointer())

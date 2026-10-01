@@ -35,10 +35,17 @@ def dispatch_events(tenant_id: uuid.UUID) -> int:
                     if wf.trigger and wf.trigger.event == ev.type and _matches(wf.trigger.match, ev.payload):
                         starts.append((m.id, wf_id, ev.payload))
             ev.delivered = True
+        if jobs.queued():  # enqueue before commit: if enqueueing fails, the events stay undelivered and are retried
+            _start(tenant_id, starts)
+    if not jobs.queued():  # inline runs execute now, after the events are committed
+        _start(tenant_id, starts)
+    return len(events)
+
+
+def _start(tenant_id: uuid.UUID, starts: list) -> None:
     for employee_id, wf_id, payload in starts:
         jobs.defer("start_run", tenant_id=str(tenant_id), user_id="system", employee_id=employee_id,
                    workflow=wf_id, event=payload)
-    return len(events)
 
 
 def _describe(ev: Event) -> str:

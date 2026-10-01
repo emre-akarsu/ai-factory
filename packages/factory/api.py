@@ -200,6 +200,8 @@ def decide(approval_id: uuid.UUID, body: Decision, p: Principal = Depends(princi
     with tenant_session(p.tenant_id) as db, domain_errors():
         approval = decide_approval(db, approval_id, p.user_id, body.approve)
         status, run_id = approval.status, runs_waiting_on(db, approval_id)
+        if run_id:  # show the run as queued until the worker resumes it
+            db.get(Run, run_id).status = "queued"
     if run_id:
         jobs.defer("resume_run", tenant_id=str(p.tenant_id), run_id=str(run_id))
     jobs.defer("dispatch_events", tenant_id=str(p.tenant_id))

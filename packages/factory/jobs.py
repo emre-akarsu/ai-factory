@@ -5,18 +5,24 @@ from __future__ import annotations
 import os
 from typing import Any
 
-_opened = False
+_deferrer = None
+
+
+def queued() -> bool:
+    return os.environ.get("FACTORY_JOBS", "inline") == "procrastinate"
 
 
 def defer(task: str, **kwargs: Any) -> None:
-    if os.environ.get("FACTORY_JOBS", "inline") == "procrastinate":
-        from factory.worker import app
+    if queued():
+        import procrastinate
 
-        global _opened
-        if not _opened:  # the API process keeps one open connector for deferring
-            app.open()
-            _opened = True
-        app.configure_task(f"factory.{task}").defer(**kwargs)
+        from factory.db import app_url, libpq
+
+        global _deferrer
+        if _deferrer is None:  # a defer-only app with a sync connector, usable in the API and inside worker jobs
+            _deferrer = procrastinate.App(connector=procrastinate.SyncPsycopgConnector(conninfo=libpq(app_url())))
+            _deferrer.open()
+        _deferrer.configure_task(f"factory.{task}").defer(**kwargs)
         return
     from factory import worker
 

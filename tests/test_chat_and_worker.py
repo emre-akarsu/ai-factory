@@ -1,5 +1,7 @@
 import uuid
 
+from sqlalchemy import select
+
 import yaml
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage
@@ -75,3 +77,36 @@ def test_worker_registers_manifest_schedule_and_runs_jobs():
     with tenant_session(tid) as db:
         assert db.scalar(select(Run.status)) == "completed"  # $1,015 is under the $1,500 default limit
         assert len(db.scalars(select(OutboundMessage)).all()) == 2
+
+
+def test_worker_job_can_enqueue_follow_up_jobs(monkeypatch):
+    """An inbound invoice is dispatched inside a worker job, which must enqueue the
+    invoice-check run on the real Postgres queue (not run it inline)."""
+    import os
+    import subprocess
+    import sys
+
+    import psycopg
+
+    from factory import worker
+    from factory.db import app_url, libpq
+    from factory.models import Event
+
+    monkeypatch.setenv("FACTORY_JOBS", "procrastinate")
+    tid, _ = installed_workspace()
+    with tenant_session(tid) as db:
+        db.add(Event(tenant_id=tid, type="message.received", payload={"kind": "invoice", "data": {}}))
+    with worker.app.open():
+        worker.app.configure_task("factory.dispatch_events").defer(tenant_id=str(tid))
+    # the real worker CLI, as on Render: a fresh process whose app is opened async
+    subprocess.run([sys.executable, "-m", "procrastinate", "--app=factory.worker.app", "worker", "--one-shot"],
+                   check=True, timeout=60, env={**os.environ, "FACTORY_JOBS": "procrastinate"}, capture_output=True)
+
+    with psycopg.connect(libpq(app_url())) as conn:
+        rows = conn.execute("select task_name, status from procrastinate_jobs where args->>'tenant_id' = %s",
+                            (str(tid),)).fetchall()
+    tasks = {name: status for name, status in rows}
+    assert tasks["factory.dispatch_events"] == "succeeded"
+    assert "factory.start_run" in tasks
+    with tenant_session(tid) as db:
+        assert db.scalar(select(Event.delivered).where(Event.type == "message.received")) is True
