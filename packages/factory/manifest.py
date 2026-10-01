@@ -130,6 +130,7 @@ class EmployeeManifest(Strict):
     meters: list[str] = []
     suggested_prompts: list[str] = []
     evals: str | None = None
+    store: str | None = None  # store.yaml with the product page, plans and media
     listing: Listing
 
     @model_validator(mode="after")

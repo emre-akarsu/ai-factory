@@ -24,7 +24,7 @@ def installed_workspace():
     owner = f"owner-{uuid.uuid4().hex[:6]}"
     tid = create_workspace("Chat Bistro", owner, "o@example.test")
     m = load_manifest("employees/restaurant_purchasing")
-    marketplace.install(tid, owner, m.id, m.permissions, FIXTURE["config"], FIXTURE["wizard"])
+    marketplace.install(tid, owner, m.id, m.permissions, FIXTURE["config"], FIXTURE["wizard"], require_listing=False)
     return tid, owner
 
 

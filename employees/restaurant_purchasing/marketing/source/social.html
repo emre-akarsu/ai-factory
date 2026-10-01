@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="brand.css">
+<style>
+  body { width: 1080px; height: 1920px; }
+  .center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding: 0 90px; }
+  .row2 { display:flex; justify-content:space-between; padding: 26px 34px; border-bottom: 2px solid var(--line); font-size: 40px; }
+  .row2 b { color: var(--bad); }
+</style></head>
+<body>
+<section class="scene" data-start="0" data-end="3.6">
+  <div class="center">
+    <p class="eyebrow" style="font-size:34px" data-in="0">For restaurant owners</p>
+    <h1 class="display" style="font-size:118px; line-height:1.05; margin-top:36px" data-in="0.3">Was last week's invoice right?</h1>
+    <p style="font-size:48px; color:var(--muted); margin-top:44px" data-in="1.6">Most owners never have time to check.</p>
+  </div>
+</section>
+<section class="scene" data-start="3.6" data-end="10.4">
+  <p class="display" style="position:absolute; top:170px; left:90px; right:90px; font-size:76px; line-height:1.1" data-in="0">Purchasing Manager checks every line against your order.</p>
+  <div class="card" style="position:absolute; left:90px; right:90px; top:560px; padding:10px 0" data-in="0.4">
+    <div class="row2" data-in="0.8" data-at="1.6:flag"><span>Chicken thighs</span><b data-in="1.6">+$24 price</b></div>
+    <div class="row2" data-in="1.0"><span>Fryer oil</span><span class="ok" data-in="1.8">✓</span></div>
+    <div class="row2" data-in="1.2" data-at="2.2:flag"><span>Flour</span><b data-in="2.2">+$26 extra bag</b></div>
+    <div class="row2" data-in="1.4"><span>Salmon</span><span class="ok" data-in="2.4">✓</span></div>
+    <div class="row2" data-in="1.6" data-at="2.8:flag" style="border:none"><span>Truffle oil</span><b data-in="2.8">+$45 never ordered</b></div>
+  </div>
+  <div class="card" style="position:absolute; left:90px; right:90px; top:1240px; padding:56px; background:var(--brand); color:var(--brand-ink); border:none; text-align:center" data-in="3.4" data-anim="pop">
+    <p style="font-size:40px; opacity:0.8">Credit requested</p>
+    <p class="display" style="font-size:190px; color:#fff" data-count="0,95,3.6,1.4" data-prefix="$">$0</p>
+  </div>
+</section>
+<section class="scene" data-start="10.4" data-end="15" style="background:var(--brand); color:var(--brand-ink)">
+  <div class="center">
+    <p class="eyebrow" style="font-size:34px; color:#f5a88e" data-in="0.1">AI employee for restaurants</p>
+    <h2 class="display" style="font-size:150px; line-height:1; margin-top:30px; color:#fff" data-in="0.3">Purchasing Manager</h2>
+    <p style="font-size:50px; margin-top:50px; line-height:1.4" data-in="0.9">Orders to par from the cheapest supplier.<br>Checks every invoice.</p>
+    <span class="pill" style="background:var(--accent); color:#fff; font-size:48px; padding:28px 60px; margin-top:80px" data-in="1.5" data-anim="pop">Try it free for 14 days</span>
+  </div>
+</section>
+<script src="timeline.js"></script>
+</body></html>

@@ -9,12 +9,14 @@ from dataclasses import dataclass
 from typing import Any
 
 import jwt
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 
 from factory import jobs
-from factory.components import marketplace, reports
+from factory.components import marketplace, reports, store
 from factory.components.workflows import runs_waiting_on
 from factory.db import tenant_session
 from factory.models import Approval, AuditEntry, Member, Notification, OutboundMessage, Run
@@ -27,6 +29,8 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="AI Factory", version="1", lifespan=lifespan)
+app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("FACTORY_CORS", "http://localhost:3000").split(","),
+                   allow_methods=["*"], allow_headers=["*"])
 
 
 @dataclass
@@ -86,6 +90,53 @@ def install(employee_id: str, body: InstallBody, p: Principal = Depends(principa
                                    body.config, body.wizard)
     jobs.defer("dispatch_events", tenant_id=str(p.tenant_id))
     return {"installation_id": str(inst.id), "employee_id": employee_id, "version": inst.version}
+
+
+# --- store (public) -------------------------------------------------------------------
+
+@app.get("/v1/store/products/{employee_id}")
+def store_product(employee_id: str) -> dict[str, Any]:
+    with domain_errors():
+        return store.product(employee_id)
+
+
+@app.get("/v1/store/assets/{employee_id}/{name:path}")
+def store_asset(employee_id: str, name: str) -> FileResponse:
+    try:
+        return FileResponse(store.asset_path(employee_id, name))
+    except (LookupError, KeyError):
+        raise HTTPException(404)
+
+
+@app.post("/v1/store/checkout")
+def store_checkout(body: store.CheckoutRequest) -> dict[str, str]:
+    with domain_errors():
+        return store.start_checkout(body)
+
+
+@app.post("/v1/store/sandbox/{order_id}/complete")
+def store_sandbox_complete(order_id: uuid.UUID) -> dict[str, Any]:
+    with domain_errors():
+        store.complete_sandbox(order_id)
+        return store.order_status(order_id)
+
+
+@app.get("/v1/store/orders/{order_id}")
+def store_order(order_id: uuid.UUID) -> dict[str, Any]:
+    with domain_errors():
+        return store.order_status(order_id)
+
+
+@app.post("/v1/store/stripe/webhook")
+async def stripe_webhook(request: Request, stripe_signature: str = Header()) -> dict[str, str]:
+    payload = await request.body()
+    try:
+        kind = store.handle_stripe_webhook(payload, stripe_signature)
+    except Exception as e:  # bad signature or payload
+        if type(e).__name__ in ("SignatureVerificationError", "ValueError"):
+            raise HTTPException(400, "invalid webhook") from e
+        raise
+    return {"received": kind}
 
 
 # --- tools, runs, approvals ------------------------------------------------------------

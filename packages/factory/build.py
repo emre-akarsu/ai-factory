@@ -80,8 +80,21 @@ def static_checks(pack: Pack, checks: list[Check]) -> None:
                 db.execute(text(f"explain {r.sql}"))
         return f"{len(m.reports)} reports"
 
+    def store():
+        if not m.store:
+            return "no store page"
+        from factory.components.store import asset_path, store_spec
+
+        spec = store_spec(m.id)
+        media = spec.media
+        files = [f for f in [media.hero_video, media.hero_video_webm, media.hero_poster, media.social_video, media.one_pager, *media.images,
+                             *(k.file for k in media.kit)] if f]
+        for f in files:
+            asset_path(m.id, f)
+        return f"{len(spec.plans)} plans, {len(files)} media files"
+
     for name, fn in [("components", components), ("tools import", tools), ("config", config),
-                     ("wizard", wizard), ("workflows compile", workflows), ("reports", reports)]:
+                     ("wizard", wizard), ("workflows compile", workflows), ("reports", reports), ("store page", store)]:
         _check(checks, name, fn)
 
 

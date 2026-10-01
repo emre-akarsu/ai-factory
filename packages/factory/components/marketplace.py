@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 
 from factory.db import tenant_session
 from factory.models import Installation, Listing, Member, PackBuild
+from factory.components.store import has_subscription
 from factory.runtime import NotAllowed, call_tool, get_pack, make_ctx
 
 
@@ -69,6 +70,8 @@ def install(tenant_id: uuid.UUID, user_id: str, employee_id: str, accepted_permi
         role = db.scalar(select(Member.role).where(Member.user_id == user_id))
         if role != "owner":
             raise NotAllowed("only a workspace owner can install employees")
+        if require_listing and m.listing.price_monthly_usd > 0 and not has_subscription(db, employee_id):
+            raise NotAllowed(f"{m.name} needs a subscription; buy it in the store first")
         inst = Installation(tenant_id=tenant_id, employee_id=m.id, version=m.version,
                             config=cfg.model_dump(mode="json"), accepted_permissions=accepted_permissions,
                             installed_by=user_id)

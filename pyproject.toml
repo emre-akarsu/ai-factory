@@ -12,10 +12,11 @@ dependencies = [
     "langgraph-checkpoint-postgres>=3.1.2",
     "procrastinate>=3.10.0",
     "psycopg[binary,pool]>=3.3.6",
-    "pydantic>=2.13.5",
+    "pydantic[email]>=2.13.5",
     "pyjwt>=2.15.1",
     "pyyaml>=6.0.3",
     "sqlalchemy>=2",
+    "stripe>=16.0.0",
     "uvicorn>=0.54.0",
 ]
 

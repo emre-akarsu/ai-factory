@@ -24,9 +24,19 @@ def test_marketplace_lists_purchasing_manager_first():
     assert "approval_threshold" in first["config_schema"]["properties"]
 
 
+def buy(email="owner@harbor.example"):
+    """Buy through the sandbox store; returns the new workspace and its owner's user id."""
+    api = TestClient(app)
+    r = api.post("/v1/store/checkout", json={"employee_id": "restaurant-purchasing", "plan_id": "single",
+                                             "email": email, "business_name": "Harbor Bistro"})
+    order_id = r.json()["order_id"]
+    done = api.post(f"/v1/store/sandbox/{order_id}/complete").json()
+    return uuid.UUID(done["workspace_id"]), f"email:{email}"
+
+
 def test_install_order_approve_invoice_report():
-    owner, manager = f"owner-{uuid.uuid4().hex[:6]}", f"mgr-{uuid.uuid4().hex[:6]}"
-    tid = create_workspace("Harbor Bistro", owner, "owner@harbor.example")
+    tid, owner = buy(f"owner-{uuid.uuid4().hex[:6]}@harbor.example")
+    manager = f"mgr-{uuid.uuid4().hex[:6]}"
     add_member(tid, manager, "mgr@harbor.example", "manager")
     c, m = client_for(tid, owner), client_for(tid, manager)
     listing = c.get("/v1/marketplace").json()[0]

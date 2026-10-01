@@ -4,6 +4,7 @@ from alembic import context
 from sqlalchemy import create_engine
 
 from factory.db import Base, owner_url
+import factory.components.store  # noqa: F401  (registers store tables)
 from factory.runtime import load_all_packs
 
 load_all_packs()

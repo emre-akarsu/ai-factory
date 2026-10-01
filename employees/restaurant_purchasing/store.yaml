@@ -1,0 +1,113 @@
+# Product page for the storefront. The web app renders any employee from this file;
+# nothing on the page is specific code. Media paths are inside marketing/.
+headline: Your food costs, bought right. Every order, every invoice.
+subheadline: >
+  Purchasing Manager is an AI employee for restaurants. It turns tonight's count into
+  tomorrow's orders at the best price across your suppliers, and checks every invoice
+  so overcharges come back as credits.
+cta: Start 14-day free trial
+
+problem:
+  - value: 28–35%
+    label: of restaurant sales goes to food. It is your biggest cost after labor.
+    source: https://whipplewood.com/insights/financial-benchmarks-for-restaurants/
+  - value: 3–8%
+    label: is a typical full-service net margin, so one point of food cost is a big share of profit.
+    source: https://whipplewood.com/insights/financial-benchmarks-for-restaurants/
+  - value: 9 in 10
+    label: operators call food and supply costs a significant challenge in 2026.
+    source: https://restaurant.org/research-and-media/media/press-releases/persistent-cost-increases-and-enduring-demand-will-shape-the-restaurant-industry-in-2026/
+
+steps:
+  - title: Count
+    body: Your team enters what is on the shelf, or tells the agent in chat.
+  - title: Order
+    body: It drafts purchase orders to par, picks the cheapest supplier for each item and keeps every supplier above its minimum.
+  - title: Approve
+    body: Orders under your limit go out by email automatically. Bigger ones wait for your tap.
+  - title: Check
+    body: Each invoice is matched to its order. Price creep, extra cases and items you never ordered become a credit request.
+
+features:
+  - icon: scale
+    title: Cheapest supplier, per item
+    body: Compares every price list you load, per unit, not per case, so a bigger case that costs more can still win.
+  - icon: truck
+    title: Minimums handled
+    body: If a supplier's order would fall under its minimum, lines move to the next best supplier already on the truck.
+  - icon: shield-check
+    title: You stay in control
+    body: Set a dollar limit. Anything above it needs the owner. Credit requests need a manager.
+  - icon: receipt
+    title: Every invoice checked
+    body: Prices above the agreed price beyond your tolerance, quantities over what you ordered and surprise items are flagged with the dollar amount.
+  - icon: message-square
+    title: Ask it anything
+    body: "\"Who is cheapest for chicken thighs?\" \"What do we need for Thursday?\" It answers from your own prices and counts."
+  - icon: file-clock
+    title: Full audit trail
+    body: Every order, approval and email is logged with who or which agent did it, and when.
+
+demo:
+  title: A sample week at a 90-seat bistro
+  note: Demo data from our test restaurant, not a customer result.
+  rows:
+    - {label: Orders drafted from one count, value: "2 suppliers, $1,015"}
+    - {label: Saved vs ordering everything from the main distributor, value: "$38"}
+    - {label: Overcharges caught on one invoice, value: "$95"}
+    - {label: Time from count to orders sent, value: "Under a minute"}
+
+roi:
+  food_cost_pct: 30
+  savings_low_pct: 1
+  savings_high_pct: 3
+  default_monthly_sales: 120000
+
+plans:
+  - id: single
+    name: Single location
+    price_monthly_usd: 149
+    trial_days: 14
+    includes:
+      - Unlimited purchase orders and invoice checks
+      - All your suppliers and price lists
+      - Owner and manager approvals
+      - Chat with your purchasing manager
+      - Spend, savings and overcharge reports
+
+faq:
+  - q: Do I have to change suppliers?
+    a: No. It works with the distributors and local vendors you already use. Load their price lists or order guides during setup.
+  - q: How does it send orders?
+    a: By email from your connected mailbox, to the ordering address each supplier gives you. You can see every email it sent.
+  - q: Can it spend money without me?
+    a: Only up to the limit you set. Anything above it waits for the owner's approval, and credit requests always need a manager.
+  - q: How long does setup take?
+    a: The setup wizard asks for your suppliers, their prices and your par levels. Most of it is copy and paste from your order guides.
+  - q: What happens after the trial?
+    a: Your card is charged monthly after 14 days. Cancel any time before that and you pay nothing.
+  - q: Is my data private?
+    a: Each restaurant gets its own workspace, separated at the database level, so no other customer's agent can read your data.
+
+trust:
+  - Your own workspace, isolated by the database
+  - Spending limits and approvals you control
+  - Every action logged
+  - Cancel any time
+
+media:
+  hero_video: video/purchasing-manager-demo.mp4
+  hero_video_webm: video/purchasing-manager-demo.webm
+  hero_poster: video/purchasing-manager-demo-poster.jpg
+  social_video: video/purchasing-manager-social-9x16.mp4
+  one_pager: purchasing-manager-one-pager.pdf
+  images:
+    - social/square-1080.png
+    - social/linkedin-1200x627.png
+  kit:
+    - {title: Product demo video (16:9), file: video/purchasing-manager-demo.mp4, kind: video}
+    - {title: Social cut (9:16), file: video/purchasing-manager-social-9x16.mp4, kind: video}
+    - {title: One-pager (PDF), file: purchasing-manager-one-pager.pdf, kind: pdf}
+    - {title: Square post image, file: social/square-1080.png, kind: image}
+    - {title: LinkedIn image, file: social/linkedin-1200x627.png, kind: image}
+    - {title: "Launch copy: social posts, ads and emails", file: copy/launch-copy.md, kind: text}

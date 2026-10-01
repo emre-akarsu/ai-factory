@@ -120,9 +120,10 @@ meters: [po_sent, invoice_checked]
 suggested_prompts:
   - What do we need to order for Thursday?
   - Who is cheapest for chicken thighs right now?
-  - Did Sysco overcharge us on the last invoice?
+  - Were we overcharged on the last produce invoice?
 
 evals: evals
+store: store.yaml
 
 listing:
   category: Operations
