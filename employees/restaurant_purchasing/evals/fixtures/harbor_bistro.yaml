@@ -1,0 +1,42 @@
+# A 90-seat bistro with a broadline distributor, a second distributor and a produce house.
+config:
+  restaurant_name: Harbor Bistro
+  primary_supplier: Sysco
+wizard:
+  suppliers:
+    suppliers:
+      - {name: Sysco, email: orders@sysco.example, min_order: 500, delivery_days: [mon, thu]}
+      - {name: US Foods, email: orders@usfoods.example, min_order: 400, delivery_days: [tue, fri]}
+      - {name: Local Produce Co, email: hello@localproduce.example, min_order: 100, delivery_days: [mon, wed, fri]}
+  price_lists:
+    price_lists:
+      - supplier: Sysco
+        lines:
+          - {item: Chicken thighs, pack_size: 40, pack_price: 118, unit: lb, category: protein}
+          - {item: Romaine, pack_size: 24, pack_price: 38, unit: head, category: produce}
+          - {item: Olive oil, pack_size: 3, pack_price: 27, unit: L, category: dry}
+          - {item: Fryer oil, pack_size: 1, pack_price: 44, unit: jug, category: dry}
+          - {item: Tomatoes, pack_size: 25, pack_price: 42, unit: lb, category: produce}
+          - {item: Flour, pack_size: 50, pack_price: 24, unit: lb, category: dry}
+          - {item: Salmon, pack_size: 10, pack_price: 129, unit: lb, category: protein}
+      - supplier: US Foods
+        lines:
+          - {item: Chicken thighs, pack_size: 40, pack_price: 110}
+          - {item: Romaine, pack_size: 24, pack_price: 36}
+          - {item: Olive oil, pack_size: 3, pack_price: 29}
+          - {item: Fryer oil, pack_size: 1, pack_price: 41}
+          - {item: Flour, pack_size: 50, pack_price: 26}
+          - {item: Salmon, pack_size: 10, pack_price: 135}
+      - supplier: Local Produce Co
+        lines:
+          - {item: Romaine, pack_size: 24, pack_price: 33}
+          - {item: Tomatoes, pack_size: 25, pack_price: 36}
+  par_levels:
+    items:
+      - {item: Chicken thighs, par_level: 120, on_hand: 30}
+      - {item: Romaine, par_level: 48, on_hand: 10}
+      - {item: Olive oil, par_level: 12, on_hand: 3}
+      - {item: Fryer oil, par_level: 6, on_hand: 2}
+      - {item: Tomatoes, par_level: 50, on_hand: 20}
+      - {item: Flour, par_level: 150, on_hand: 100}
+      - {item: Salmon, par_level: 30, on_hand: 10}

@@ -1,0 +1,12 @@
+name: a rejected order sends nothing
+fixture: fixtures/harbor_bistro.yaml
+config: {approval_threshold: 800}
+steps:
+  - workflow: reorder
+    expect: {status: waiting_approval}
+  - decide: reject
+    expect: {status: rejected}
+  - query: select count(*) as n from outbound_messages
+    expect: {0.n: 0}
+  - query: select status, count(*) as n from rp_purchase_orders group by status
+    expect: {0.status: draft, 0.n: 2}

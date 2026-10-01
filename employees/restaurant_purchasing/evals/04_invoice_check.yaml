@@ -1,0 +1,50 @@
+name: invoices are matched to their PO and overcharges go to a credit request
+fixture: fixtures/harbor_bistro.yaml
+steps:
+  - workflow: reorder
+    as: reorder
+    expect: {status: completed, result.send_purchase_orders.sent: {len: 2}}
+  - event: message.received
+    as: usfoods_invoice
+    payload:
+      channel: email
+      sender: billing@usfoods.example
+      kind: invoice
+      data:
+        supplier: US Foods
+        invoice_number: INV-1001
+        po_number: $reorder.result.build_order.orders.1.number
+        lines:
+          - {item: Chicken thighs, packs: 3, pack_price: 118}   # agreed 110
+          - {item: Fryer oil, packs: 4, pack_price: 41}
+          - {item: Olive oil, packs: 3, pack_price: 29}
+          - {item: Flour, packs: 2, pack_price: 26}             # ordered 1
+          - {item: Salmon, packs: 2, pack_price: 135}
+          - {item: Truffle oil, packs: 1, pack_price: 45}       # never ordered
+    expect:
+      status: waiting_approval
+      result.check_invoice.status: disputed
+      result.check_invoice.dispute_amount: 95.0
+      result.check_invoice.issues: {len: 3}
+  - query: select count(*) as n from notifications where event_type = 'invoice.disputed' and role = 'owner'
+    expect: {0.n: 1}
+  - decide: approve
+    user: manager
+    expect: {status: completed, result.send_credit_request.credit_requested: 95.0}
+  - query: select "to", body from outbound_messages where subject like 'Credit request%'
+    expect: {0.to: orders@usfoods.example, 0.body: {contains: "$95.00"}}
+  - event: message.received
+    as: produce_invoice
+    payload:
+      kind: invoice
+      sender: hello@localproduce.example
+      data:
+        supplier: Local Produce Co
+        invoice_number: LP-77
+        po_number: $reorder.result.build_order.orders.0.number
+        lines:
+          - {item: Romaine, packs: 2, pack_price: 33}
+          - {item: Tomatoes, packs: 2, pack_price: 36.5}       # 1.4% over, inside the 2% tolerance
+    expect: {status: completed, result.check_invoice.status: matched, result.send_credit_request.skipped: true}
+  - query: select kind, amount from rp_invoice_issues order by kind
+    expect: {0.kind: not_ordered, 0.amount: 45.0, 1.kind: price_over, 1.amount: 24.0, 2.kind: quantity_over, 2.amount: 26.0}

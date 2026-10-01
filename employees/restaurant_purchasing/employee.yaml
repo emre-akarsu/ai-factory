@@ -1,0 +1,135 @@
+# yaml-language-server: $schema=../../dist/employee.schema.json
+id: restaurant-purchasing
+name: Purchasing Manager
+version: 0.1.0
+industry: restaurants
+tagline: Orders to par from the cheapest supplier and catches invoice overcharges.
+description: >
+  An AI purchasing manager for independent restaurants and small groups. It turns your
+  inventory count into purchase orders against par levels, picks the cheapest supplier per
+  item while meeting each distributor's minimum order, emails the POs, and checks every
+  invoice against what you ordered so price creep and extra cases get credited back.
+role_prompt: |
+  You are the purchasing manager for a restaurant. You keep stock at par at the lowest
+  landed cost. Use the tools; never invent prices or quantities. Before sending orders,
+  summarise each supplier's total and any order below the supplier's minimum. When an
+  invoice does not match its purchase order, explain each issue in plain words and the
+  dollar amount at stake. Money leaves the business only through approved tools.
+model: claude-sonnet-5-5
+
+roles: [owner, manager, staff]
+
+uses:
+  - workspace
+  - onboarding_wizard
+  - connectors
+  - approvals
+  - workflows
+  - agent_chat
+  - reports
+  - notifications
+  - metering
+  - audit
+
+connectors:
+  - name: email
+    scopes: [send]
+    purpose: Send purchase orders and credit requests to your suppliers
+
+config_model: employees.restaurant_purchasing.config:PurchasingConfig
+data_models: employees.restaurant_purchasing.models
+
+tools:
+  - name: import_suppliers
+    entry: employees.restaurant_purchasing.tools:import_suppliers
+  - name: import_price_lists
+    entry: employees.restaurant_purchasing.tools:import_price_lists
+  - name: set_par_levels
+    entry: employees.restaurant_purchasing.tools:set_par_levels
+  - name: record_count
+    entry: employees.restaurant_purchasing.tools:record_count
+    roles: [owner, manager, staff]
+  - name: compare_prices
+    entry: employees.restaurant_purchasing.tools:compare_prices
+    roles: [owner, manager, staff]
+  - name: build_order
+    entry: employees.restaurant_purchasing.tools:build_order
+  - name: send_purchase_orders
+    entry: employees.restaurant_purchasing.tools:send_purchase_orders
+    approval: {role: owner, over_config: approval_threshold}
+  - name: check_invoice
+    entry: employees.restaurant_purchasing.tools:check_invoice
+  - name: send_credit_request
+    entry: employees.restaurant_purchasing.tools:send_credit_request
+    approval: {role: manager}
+
+workflows:
+  reorder:
+    title: Count-to-order run (Monday and Thursday mornings)
+    trigger: {cron: "0 13 * * 1,4"}
+    steps:
+      - tool: build_order
+      - tool: send_purchase_orders
+        args: {po_ids: $build_order.po_ids}
+        skip_if_empty: build_order.po_ids
+  invoice_check:
+    title: Check each supplier invoice when it arrives
+    trigger: {event: message.received, match: {kind: invoice}}
+    steps:
+      - tool: check_invoice
+        args: $event.data
+      - tool: send_credit_request
+        args: {supplier: $check_invoice.supplier, invoice_number: $check_invoice.invoice_number}
+        skip_if_empty: check_invoice.dispute_amount
+
+wizard:
+  - id: suppliers
+    title: Your suppliers
+    model: employees.restaurant_purchasing.config:SuppliersStep
+    apply_tool: import_suppliers
+  - id: price_lists
+    title: Order guides and prices
+    model: employees.restaurant_purchasing.config:PriceListsStep
+    apply_tool: import_price_lists
+  - id: par_levels
+    title: Par levels
+    model: employees.restaurant_purchasing.config:ParLevelsStep
+    apply_tool: set_par_levels
+
+reports:
+  - id: spend_by_supplier
+    title: Spend by supplier, last 30 days
+    sql: |
+      select s.name as supplier, count(*) as orders, sum(po.total) as spend,
+             sum(po.savings_vs_primary) as savings
+      from rp_purchase_orders po join rp_suppliers s on s.id = po.supplier_id
+      where po.status in ('sent', 'invoiced') and po.sent_at > now() - interval '30 days'
+      group by s.name order by spend desc
+  - id: invoice_issues
+    title: Invoice overcharges caught
+    sql: |
+      select i.kind, count(*) as issues, sum(i.amount) as amount
+      from rp_invoice_issues i group by i.kind order by amount desc
+
+notifications:
+  - {event: purchase_order.sent, role: manager}
+  - {event: invoice.disputed, role: owner, channel: email}
+
+meters: [po_sent, invoice_checked]
+
+suggested_prompts:
+  - What do we need to order for Thursday?
+  - Who is cheapest for chicken thighs right now?
+  - Did Sysco overcharge us on the last invoice?
+
+evals: evals
+
+listing:
+  category: Operations
+  price_monthly_usd: 149
+  featured: true
+  highlights:
+    - Orders to par from your count
+    - Cheapest supplier per item, minimums respected
+    - Owner approval above your limit
+    - Every invoice checked against its PO

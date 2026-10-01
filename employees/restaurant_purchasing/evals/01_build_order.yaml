@@ -1,0 +1,32 @@
+name: orders to par from the cheapest supplier and respects minimums
+fixture: fixtures/harbor_bistro.yaml
+steps:
+  - tool: compare_prices
+    args: {item: chicken thighs}
+    expect: {prices.0.supplier: US Foods, prices.0.unit_price: 2.75, prices: {len: 2}}
+  - tool: build_order
+    user: manager
+    # Sysco's three cheapest lines total $363, under its $500 minimum, so they move to US Foods.
+    expect:
+      orders: {len: 2}
+      orders.0.supplier: Local Produce Co
+      orders.0.total: 138.0
+      orders.1.supplier: US Foods
+      orders.1.total: 877.0
+      orders.1.below_minimum: false
+      total: 1015.0
+      savings_vs_primary: 38.0
+  - tool: record_count
+    user: staff
+    args: {counts: [{item: Salmon, on_hand: 30}, {item: Caviar, on_hand: 1}]}
+    expect: {counted: 1, unknown_items: [Caviar]}
+  - tool: build_order
+    as: rebuilt
+    expect: {orders.1.total: 607.0, total: 745.0}
+  - tool: build_order
+    as: staff_denied
+    user: staff
+    raises: true
+    expect: {error: NotAllowed}
+  - query: select status, count(*) as n from rp_purchase_orders group by status order by status
+    expect: {0.status: draft, 0.n: 2, 1.status: superseded, 1.n: 2}

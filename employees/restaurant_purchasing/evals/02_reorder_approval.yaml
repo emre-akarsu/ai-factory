@@ -1,0 +1,24 @@
+name: orders above the owner's limit wait for approval, then go out by email
+fixture: fixtures/harbor_bistro.yaml
+config: {approval_threshold: 800}
+steps:
+  - workflow: reorder
+    as: run
+    expect: {status: waiting_approval, result.build_order.total: 1015.0}
+  - query: select count(*) as n from outbound_messages
+    expect: {0.n: 0}
+  - decide: approve
+    user: manager
+    raises: true
+    as: manager_cannot
+  - query: select count(*) as n from approvals where status = 'pending'
+    expect: {0.n: 1}
+  - decide: approve
+    user: owner
+    expect: {status: completed, result.send_purchase_orders.sent: {len: 2}}
+  - query: select "to", subject from outbound_messages order by "to"
+    expect: {0.to: hello@localproduce.example, 1.to: orders@usfoods.example, 1.subject: {contains: Harbor Bistro}}
+  - query: select sum(quantity) as n from usage where unit = 'po_sent'
+    expect: {0.n: 2}
+  - query: select count(*) as n from notifications where event_type = 'purchase_order.sent' and role = 'manager'
+    expect: {0.n: 2}
