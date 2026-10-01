@@ -13,8 +13,8 @@ export function RoiCalculator({ roi, price }: { roi: Roi; price: number }) {
   const high = (spend * roi.savings_high_pct) / 100;
 
   return (
-    <div className="grid gap-8 rounded-3xl bg-brand p-8 text-brand-ink md:grid-cols-2 md:p-12">
-      <div className="space-y-8">
+    <div className="grid gap-8 rounded-3xl bg-brand p-6 text-brand-ink sm:p-8 md:grid-cols-2 md:p-12">
+      <div className="min-w-0 space-y-8">
         <label className="block">
           <span className="flex justify-between text-sm opacity-80">
             Monthly sales <strong className="font-semibold text-white">{usd(sales)}</strong>
@@ -42,7 +42,7 @@ export function RoiCalculator({ roi, price }: { roi: Roi; price: number }) {
           {roi.savings_high_pct}% of your {usd(spend)} monthly food spend. Your result depends on your prices.
         </p>
       </div>
-      <div className="flex flex-col justify-center rounded-2xl bg-white/10 p-8">
+      <div className="flex min-w-0 flex-col justify-center rounded-2xl bg-white/10 p-8">
         <p className="text-sm opacity-80">Estimated savings per month</p>
         <p data-testid="roi-range" className="mt-2 font-display text-5xl font-semibold text-white">
           {usd(low)}–{usd(high)}
